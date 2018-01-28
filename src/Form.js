@@ -46,8 +46,9 @@ const hasCapitalLetter = a => /[A-Z]/.test(a)
 const isGreaterThan = R.curry((len, a) => (a > len))
 const isLengthGreaterThan = len => R.compose(isGreaterThan(len), R.prop('length'))
 
-const StatelessFunction = ({ form, onChange, onSubmit, errors = {} }) =>
-    <div className='form'>
+const StatelessFunction = ({ form, onChange, onSubmit, errors = {} }) => {
+    console.log(form)
+    return (<div className='form'>
         <div className='formGroup'>
             <label>Name</label>
             <input
@@ -67,7 +68,8 @@ const StatelessFunction = ({ form, onChange, onSubmit, errors = {} }) =>
             { errors.random }
         </div>
         <button onClick={() => onSubmit(form)}>Submit</button>
-    </div>
+    </div>)
+}
 
 const validationRules = {
     name: [
