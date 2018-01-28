@@ -84,3 +84,11 @@ const initialState = {form: {name: '', random: ''}}
 
 const enhanced = HocValidate(initialState, validationRules)
 export default enhanced(StatelessFunction)
+
+
+/*
+1. Handling nested validations -- may be we need to send the full form state
+2. Multiple wizard -- there should be a state which says what form we are in.
+3. Localization --- if we want to do localization, then we need to find a way
+                    for the same.
+ */
