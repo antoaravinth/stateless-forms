@@ -14,15 +14,16 @@ const validate = R.map(R.compose(R.sequence(Either.of), runPredicates))
 const makeValidationObject = R.mergeWithKey((k, l, r) => [l, r])
 const getErrors = R.compose(validate, makeValidationObject)
 
-const StatelessForm = (initialState, validationRules) => compose(
+const StatelessForm = (initialState, validationRules, ...rest) => compose(
 
     withState('state','updateState',R.assoc('errors',{}, initialState)),
-    mapProps(({updateState, state, ...rest}) => ({
+    mapProps(({updateState, state}) => ({
 
         //handling form states here
         form : R.prop('form',state),
         errors: R.prop('errors',state),
 
+        //handling event handlers here
         onChange : (name,event) => {
             const value = R.path(['target', 'value'],event);
             console.log(value)
@@ -32,42 +33,20 @@ const StatelessForm = (initialState, validationRules) => compose(
             })
         },
 
-        //handling event handlers here
-        ...rest
-    }))
-);
 
-/*
-const HocValidate = (initialState, validationRules) => compose(
-    withState('state', 'updateState', R.assoc('errors', {}, initialState)),
-    mapProps(({ updateState, state, ...rest }) => ({
-        onChange: R.curry((name, value) =>
+        //common util for update state
+        updateState : (fn) => {
             updateState(state => {
-                const newState = R.assocPath(['form', name], value, state);
-                const errors = R.map(ErrorComponent, getErrors(R.prop('form', newState), validationRules))
-                return R.assoc('errors', errors, newState)
-            })
-        ),
-        form: R.prop('form', state),
-        errors: R.prop('errors', state),
-        updateState : (tt) => {
-            updateState(state => {
-                console.log(state)
-                state.form.name = "changed";
-                return state
+                return fn(state);
+                // state.form.name = "changed";
+                // return state
             })
         },
-        ...rest,
-    }))
-)
-*/
 
-// Error Component
-const ErrorComponent = result =>
-    result.cata({
-        Right: a => null,
-        Left: errorMsg => <div className='error'>{errorMsg}</div>
-    })
+        //other props if any pass on
+        others : rest
+    }))
+);
 
 // helper
 const getValue = R.path(['target', 'value'])
@@ -77,31 +56,6 @@ const isNotEmpty = a => a.trim().length > 0
 const hasCapitalLetter = a => /[A-Z]/.test(a)
 const isGreaterThan = R.curry((len, a) => (a > len))
 const isLengthGreaterThan = len => R.compose(isGreaterThan(len), R.prop('length'))
-
-const StatelessFunction = ({ form, onChange, updateState,  errors = {} }) => {
-    console.log(form)
-    return (<div className='form'>
-        <div className='formGroup'>
-            <label>Name</label>
-            <input
-                type='text'
-                value={form.name}
-                onChange={R.compose(onChange('name'), getValue)}
-            />
-            { errors.name }
-        </div>
-        <div className='formGroup'>
-            <label>Random</label>
-            <input
-                type='text'
-                value={form.random}
-                onChange={R.compose(onChange('random'), getValue)}
-            />
-            { errors.random }
-        </div>
-        <button onClick={() => updateState("anto")}>Submit</button>
-    </div>)
-}
 
 const validationRules = {
     name: [
@@ -113,12 +67,13 @@ const validationRules = {
     ]
 }
 const initialState = {form: {name: 'anto', random: ''}};
-/*
-const enhanced = HocValidate(initialState, validationRules)
-export default enhanced(StatelessFunction)
-*/
 
-const enhanced = StatelessForm(initialState, validationRules)
+const eventHandlers =  {
+    click : (value) => {
+
+    }
+};
+const enhanced = StatelessForm(initialState, validationRules,eventHandlers)
 
 
 const dummy = (({...rest}) => {
@@ -145,4 +100,62 @@ export default enhanced(dummy)
 2. Multiple wizard -- there should be a state which says what form we are in.
 3. Localization --- if we want to do localization, then we need to find a way
                     for the same.
+
+
+
+
+ /*
+ const enhanced = HocValidate(initialState, validationRules)
+ export default enhanced(StatelessFunction)
+
+ const StatelessFunction = ({ form, onChange, updateState,  errors = {} }) => {
+ console.log(form)
+ return (<div className='form'>
+ <div className='formGroup'>
+ <label>Name</label>
+ <input
+ type='text'
+ value={form.name}
+ onChange={R.compose(onChange('name'), getValue)}
+ />
+ { errors.name }
+ </div>
+ <div className='formGroup'>
+ <label>Random</label>
+ <input
+ type='text'
+ value={form.random}
+ onChange={R.compose(onChange('random'), getValue)}
+ />
+ { errors.random }
+ </div>
+ <button onClick={() => updateState("anto")}>Submit</button>
+ </div>)
+ }
+ */
+
+
+/*
+ const HocValidate = (initialState, validationRules) => compose(
+ withState('state', 'updateState', R.assoc('errors', {}, initialState)),
+ mapProps(({ updateState, state, ...rest }) => ({
+ onChange: R.curry((name, value) =>
+ updateState(state => {
+ const newState = R.assocPath(['form', name], value, state);
+ const errors = R.map(ErrorComponent, getErrors(R.prop('form', newState), validationRules))
+ return R.assoc('errors', errors, newState)
+ })
+ ),
+ form: R.prop('form', state),
+ errors: R.prop('errors', state),
+ updateState : (tt) => {
+ updateState(state => {
+ console.log(state)
+ state.form.name = "changed";
+ return state
+ })
+ },
+ ...rest,
+ }))
+ )
  */
