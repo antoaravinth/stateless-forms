@@ -14,21 +14,53 @@ const validate = R.map(R.compose(R.sequence(Either.of), runPredicates))
 const makeValidationObject = R.mergeWithKey((k, l, r) => [l, r])
 const getErrors = R.compose(validate, makeValidationObject)
 
+const StatelessForm = (initialState, validationRules) => compose(
+
+    withState('state','updateState',R.assoc('errors',{}, initialState)),
+    mapProps(({updateState, state, ...rest}) => ({
+
+        //handling form states here
+        form : R.prop('form',state),
+        errors: R.prop('errors',state),
+
+        onChange : (name,event) => {
+            const value = R.path(['target', 'value'],event);
+            console.log(value)
+            updateState(state => {
+                const updatedState = R.assocPath(['form', name],value, state);
+                return R.assoc('errros',{}, updatedState)
+            })
+        },
+
+        //handling event handlers here
+        ...rest
+    }))
+);
+
+/*
 const HocValidate = (initialState, validationRules) => compose(
     withState('state', 'updateState', R.assoc('errors', {}, initialState)),
     mapProps(({ updateState, state, ...rest }) => ({
         onChange: R.curry((name, value) =>
             updateState(state => {
-                const newState = R.assocPath(['form', name], value, state)
+                const newState = R.assocPath(['form', name], value, state);
                 const errors = R.map(ErrorComponent, getErrors(R.prop('form', newState), validationRules))
                 return R.assoc('errors', errors, newState)
             })
         ),
         form: R.prop('form', state),
         errors: R.prop('errors', state),
+        updateState : (tt) => {
+            updateState(state => {
+                console.log(state)
+                state.form.name = "changed";
+                return state
+            })
+        },
         ...rest,
     }))
 )
+*/
 
 // Error Component
 const ErrorComponent = result =>
@@ -46,7 +78,7 @@ const hasCapitalLetter = a => /[A-Z]/.test(a)
 const isGreaterThan = R.curry((len, a) => (a > len))
 const isLengthGreaterThan = len => R.compose(isGreaterThan(len), R.prop('length'))
 
-const StatelessFunction = ({ form, onChange, onSubmit, errors = {} }) => {
+const StatelessFunction = ({ form, onChange, updateState,  errors = {} }) => {
     console.log(form)
     return (<div className='form'>
         <div className='formGroup'>
@@ -67,7 +99,7 @@ const StatelessFunction = ({ form, onChange, onSubmit, errors = {} }) => {
             />
             { errors.random }
         </div>
-        <button onClick={() => onSubmit(form)}>Submit</button>
+        <button onClick={() => updateState("anto")}>Submit</button>
     </div>)
 }
 
@@ -80,10 +112,32 @@ const validationRules = {
         [ hasCapitalLetter, 'Random should contain at least one uppercase letter.' ],
     ]
 }
-const initialState = {form: {name: '', random: ''}}
-
+const initialState = {form: {name: 'anto', random: ''}};
+/*
 const enhanced = HocValidate(initialState, validationRules)
 export default enhanced(StatelessFunction)
+*/
+
+const enhanced = StatelessForm(initialState, validationRules)
+
+
+const dummy = (({...rest}) => {
+    console.log(rest)
+    const {errors , form , onChange } = rest;
+    return (<div>
+        <div className='formGroup'>
+            <label>Name</label>
+            <input
+                type='text'
+                value={form.name}
+                onChange={onChange.bind(null,'name')}
+            />
+            { errors.name }
+        </div>
+    </div>)
+})
+
+export default enhanced(dummy)
 
 
 /*
