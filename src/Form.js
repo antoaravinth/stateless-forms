@@ -24,14 +24,13 @@ const StatelessForm = (initialState, validationRules, ...rest) => compose(
         errors: R.prop('errors',state),
 
         //handling event handlers here
-        onChange : (name,event) => {
+        update : R.curry((name, event) => {
             const value = R.path(['target', 'value'],event);
-            console.log(value)
             updateState(state => {
                 const updatedState = R.assocPath(['form', name],value, state);
                 return R.assoc('errros',{}, updatedState)
             })
-        },
+        }),
 
 
         //common util for update state
@@ -73,21 +72,22 @@ const eventHandlers =  {
 
     }
 };
-const enhanced = StatelessForm(initialState, validationRules,eventHandlers)
+const enhanced = StatelessForm(initialState, validationRules)
 
 
 const dummy = (({...rest}) => {
     console.log(rest)
-    const {errors , form , onChange } = rest;
+    const {errors , form , update } = rest;
     return (<div>
         <div className='formGroup'>
             <label>Name</label>
             <input
                 type='text'
                 value={form.name}
-                onChange={onChange.bind(null,'name')}
+                onChange={update('name')}
             />
             { errors.name }
+            <button>click me</button>
         </div>
     </div>)
 })
